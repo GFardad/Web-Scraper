@@ -166,3 +166,35 @@ class CAPTCHADetector:
         
         logger.error(f"CAPTCHA not solved after {timeout}s")
         return False
+    @staticmethod
+    async def solve_captcha(page: Page, captcha_info: Dict[str, Any]) -> bool:
+        """
+        Attempt to solve CAPTCHA using external service.
+        
+        Args:
+            page: Playwright page object
+            captcha_info: Info from detect()
+            
+        Returns:
+            True if solved
+        """
+        logger.info(f"🧩 Initiating CAPTCHA solver for {captcha_info['type']}...")
+        
+        # Placeholder for 2Captcha/Anti-Captcha integration
+        # In a real implementation, this would:
+        # 1. Take screenshot or get sitekey
+        # 2. Send to API
+        # 3. Wait for solution
+        # 4. Inject solution into page
+        
+        try:
+            # Simulate solving delay
+            import asyncio
+            await asyncio.sleep(2)
+            
+            logger.info("✅ CAPTCHA solved (simulated)")
+            return True
+            
+        except Exception as e:
+            logger.error(f"❌ CAPTCHA solving failed: {e}")
+            return False

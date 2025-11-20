@@ -63,6 +63,24 @@ class TestStrategiesIntegration:
     
     async def test_jsonld_extraction(self):
         """Test JSON-LD extraction with fixture."""
-        # This would use a local HTML fixture
-        # For now, placeholder
-        assert True  # Placeholder
+        from playwright.async_api import async_playwright
+        from extraction_strategies import IntelligentExtractor
+        import os
+        
+        fixture_path = os.path.abspath("tests/fixtures/product_page.html")
+        url = f"file://{fixture_path}"
+        
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(headless=True)
+            page = await browser.new_page()
+            await page.goto(url)
+            
+            # Test extraction
+            result = await IntelligentExtractor.extract_price(page, url)
+            
+            assert result is not None
+            assert "iPhone 13" in result['title']
+            assert result['price'] == 350000000
+            assert result['currency'] == "Rial"
+            
+            await browser.close()

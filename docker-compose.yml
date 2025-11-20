@@ -85,6 +85,41 @@ services:
       start_period: 60s
 
   # ─────────────────────────────────────────────────────────────────
+  # CONTROL CENTER - Streamlit UI
+  # ─────────────────────────────────────────────────────────────────
+  control-center:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: scraper-control-center
+    restart: unless-stopped
+    
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+      - scraper-data:/app/data
+      - scraper-logs:/app/logs
+      - sessions:/app/data/browser_sessions
+      - screenshots:/app/data/screenshots
+      - errors:/app/data/error_screenshots
+      
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      MONGO_PASSWORD: ${MONGO_PASSWORD}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      
+    depends_on:
+      scraper:
+        condition: service_healthy
+        
+    networks:
+      - scraper-network
+      
+    ports:
+      - "8501:8501"
+      
+    command: ["streamlit", "run", "control_center/app.py", "--server.address=0.0.0.0"]
+
+  # ─────────────────────────────────────────────────────────────────
   # POSTGRESQL - Structured Data
   # ─────────────────────────────────────────────────────────────────
   postgres:
