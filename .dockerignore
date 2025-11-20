@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs & Data (will be in volumes)
+*.log
+logs/
+data/
+errors/
+screenshots/
+commercial_scraper.db
+
+# Git
+.git/
+.gitignore
+
+# Docker
+.dockerignore
+
+# Development
+.env
+.env.local
+
+# Documentation (not needed in container)
+*.md
+!README.md
+
+# Temporary files
+*.tmp
+tmp/
+temp/

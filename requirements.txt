@@ -1,0 +1,81 @@
+# Testing
+pytest>=8.3.0
+pytest-asyncio>=0.24.0
+pytest-cov>=6.0.0
+pytest-mock>=3.14.0
+
+# Browser Automation
+playwright>=1.44.0
+playwright-stealth>=0.1.0
+
+# Database
+sqlalchemy>=2.0.30
+aiosqlite>=0.20.0
+
+# HTTP &# ═══════════════════════════════════════════════════════════════════
+# CORE LIBRARIES
+# ═══════════════════════════════════════════════════════════════════
+playwright>=1.40.0
+requests>=2.31.0
+
+# ═══════════════════════════════════════════════════════════════════
+# DATABASE DRIVERS
+# ═══════════════════════════════════════════════════════════════════
+psycopg2-binary>=2.9.9
+pymongo>=4.6.0
+Motor>=3.3.0
+redis>=5.0.0
+
+# ═══════════════════════════════════════════════════════════════════
+# CONFIGURATION & HOT-RELOAD
+# ═══════════════════════════════════════════════════════════════════
+PyYAML>=6.0.1
+watchdog>=3.0.0
+pydantic>=2.5.0
+
+# ═══════════════════════════════════════════════════════════════════
+# AI & ML
+# ═══════════════════════════════════════════════════════════════════
+openai>=1.3.0
+
+# ═══════════════════════════════════════════════════════════════════
+# DATABASE & ORM
+# ═══════════════════════════════════════════════════════════════════
+sqlalchemy>=2.0.23
+
+# ═══════════════════════════════════════════════════════════════════
+# V1.0 GOD-TIER FEATURES
+# ═══════════════════════════════════════════════════════════════════
+
+# TLS Fingerprinting & Advanced Requests
+curl-cffi>=0.6.0  # TLS/JA3 spoofing
+httpx>=0.25.0  # Alternative async HTTP client
+
+# Human-like Input (B-spline curves)
+scipy>=1.11.0  # For B-spline interpolation
+numpy>=1.24.0  # Mathematical operations
+
+# GPU/VRAM Monitoring
+nvidia-ml-py3>=7.352.0  # pynvml - NVIDIA Management Library
+
+# Monitoring & Metrics
+prometheus-client>=0.19.0  # Prometheus metrics exporter
+
+# ═══════════════════════════════════════════════════════════════════
+# CONTROL CENTER UI
+# ═══════════════════════════════════════════════════════════════════
+streamlit>=1.29.0  # Web UI framework
+plotly>=5.18.0  # Interactive charts
+prometheus-api-client>=0.5.3  # Query Prometheus
+pandas>=2.1.0  # Data manipulation for UI tables1.0
+
+# UI & Visualization
+streamlit>=1.32.0
+greenlet>=3.0.3
+
+# MongoDB driver (for dual database)
+motor>=3.3.0  # Async MongoDB
+pymongo>=4.6.0
+
+# Redis (for queue management)
+redis>=5.0.0

@@ -1,0 +1,430 @@
+# ═══════════════════════════════════════════════════════════════════
+# SCRAPER MASTER CONFIGURATION - Single Source of Truth
+# ═══════════════════════════════════════════════════════════════════
+# This file controls the ENTIRE scraper ecosystem. All values are hot-reloadable.
+# Changes take effect immediately without restarting containers.
+
+# ═══════════════════════════════════════════════════════════════════
+# SYSTEM PATHS
+# ═══════════════════════════════════════════════════════════════════
+paths:
+  # Base directory for all data storage
+  data_dir: "/app/data"
+  
+  # Logs
+  logs_dir: "/app/logs"
+  log_file: "/app/logs/scraper.log"
+  error_log: "/app/logs/errors.log"
+  
+  # Screenshots and media
+  screenshots_dir: "/app/data/screenshots"
+  error_screenshots_dir: "/app/data/error_screenshots"
+  
+  # Temporary files
+  temp_dir: "/tmp/scraper"
+  
+  # Browser session storage
+  sessions_dir: "/app/data/browser_sessions"
+  
+  # AI prompts (external files)
+  prompts_dir: "/app/prompts"
+  
+  # Database migrations
+  migrations_dir: "/app/migrations"
+
+# ═══════════════════════════════════════════════════════════════════
+# DATABASES
+# ═══════════════════════════════════════════════════════════════════
+databases:
+  # PostgreSQL - Structured data
+  postgres:
+    host: "postgres"
+    port: 5432
+    database: "scraper_db"
+    username: "scraper"
+    password: "${POSTGRES_PASSWORD}"  # From environment
+    pool_size: 20
+    max_overflow: 10
+    connection_timeout: 30
+    
+  # MongoDB - Raw data & flexible schemas
+  mongo:
+    host: "mongo"
+    port: 27017
+    database: "scraper_raw"
+    username: "scraper"
+    password: "${MONGO_PASSWORD}"  # From environment
+    auth_source: "admin"
+    collections:
+      raw_html: "raw_html"
+      screenshots: "screenshots"
+      api_responses: "api_responses"
+      debug_logs: "debug_logs"
+      error_archive: "error_archive"
+    # TTL indexes (optional cleanup)
+    ttl:
+      raw_html_days: 90  # Keep raw HTML for 90 days
+      debug_logs_days: 30
+      error_archive_days: 180
+      
+  # Redis - Queue & caching
+  redis:
+    host: "redis"
+    port: 6379
+    db: 0
+    password: "${REDIS_PASSWORD}"  # From environment
+    socket_timeout: 5
+    max_connections: 50
+
+# ═══════════════════════════════════════════════════════════════════
+# AI MODELS & INFERENCE
+# ═══════════════════════════════════════════════════════════════════
+ai:
+  # GPU Configuration
+  gpu:
+    enabled: true
+    device_id: 0  # CUDA_VISIBLE_DEVICES
+    max_vram_gb: 3.0  # Reserve 3GB VRAM total
+    
+  # Ollama - Local LLM
+  ollama:
+    base_url: "http://ollama:11434"
+    model_name: "phi3:mini"  # Microsoft Phi-3 Mini 3.8B (fits in 2.3GB VRAM)
+    quantization: "q4_0"  # 4-bit quantization
+    context_length: 4096
+    temperature: 0.1  # Low temp for factual extraction
+    timeout: 120
+    max_retries: 3
+    
+    # Model parameters
+    num_gpu_layers: -1  # Use all GPU layers
+    num_ctx: 4096
+    num_predict: 512
+    
+  # PaddleOCR - Text extraction from images
+  paddleocr:
+    base_url: "http://paddleocr:8000"
+    use_gpu: true
+    lang: "en"
+    det_model: "en_PP-OCRv3_det"
+    rec_model: "en_PP-OCRv3_rec"
+    max_vram_mb: 700  # Reserve 700MB VRAM
+    batch_size: 4
+    timeout: 60
+    
+  # Confidence thresholds
+  confidence:
+    min_llm_extraction: 0.6  # Minimum confidence for LLM results
+    min_ocr_extraction: 0.5  # Minimum confidence for OCR results
+    min_jsonld: 0.8  # Minimum confidence for JSON-LD
+    
+  # Extraction strategy priority (order matters)
+  extraction_priority:
+    - "jsonld"        # Highest: Structured data
+    - "llm"           # Second: AI-based extraction
+    - "ocr"           # Third: Image-based extraction
+    - "dom"           # Fallback: Traditional DOM scraping
+
+# ═══════════════════════════════════════════════════════════════════
+# AI PROMPTS (System Prompts for LLM)
+# ═══════════════════════════════════════════════════════════════════
+prompts:
+  # Product extraction prompt
+  product_extraction:
+    file: "prompts/product_extraction.txt"
+    # Inline fallback if file not found
+    inline: |
+      You are a product data extraction assistant. Extract the following from HTML:
+      
+      1. Product Title
+      2. Price (numerical value and currency)
+      3. Original Price (if discounted)
+      4. Availability (in stock / out of stock)
+      5. Product ID or SKU
+      6. Brand name
+      
+      Return ONLY valid JSON with these fields. If a field is not found, use null.
+      
+  # Price-specific OCR prompt
+  price_ocr_prompt:
+    inline: "Extract only numerical prices and currency symbols from this image."
+    
+  # CAPTCHA detection prompt
+  captcha_detection:
+    inline: "Is this a CAPTCHA challenge? Respond with YES or NO, followed by the CAPTCHA type if applicable."
+
+# ═══════════════════════════════════════════════════════════════════
+# SCRAPER BEHAVIOR
+# ═══════════════════════════════════════════════════════════════════
+scraper:
+  # Concurrency & Threading
+  concurrency:
+    max_workers: 8  # Concurrent scraping tasks
+    max_browser_contexts: 4  # Concurrent browser contexts
+    semaphore_limit: 10
+    
+  # Rate Limiting
+  rate_limiting:
+    enabled: true
+    base_delay: 2.0  # Base delay between requests (seconds)
+    max_delay: 30.0  # Maximum adaptive delay
+    per_domain_delay: 5.0  # Minimum delay per domain
+    
+    # Adaptive Rate Limiting (AIMD algorithm)
+    adaptive:
+      enabled: true
+      increase_factor: 1.5  # Multiplicative increase on error
+      decrease_factor: 0.5  # Additive decrease on success
+      success_threshold: 5  # Successful requests before decreasing delay
+      
+  # Timeouts
+  timeouts:
+    page_load: 30  # Page load timeout (seconds)
+    navigation: 30  # Navigation timeout
+    element_wait: 10  # Wait for element timeout
+    network_idle: 5  # Wait for network idle
+    screenshot: 10  # Screenshot capture timeout
+    
+  # Retries
+  retries:
+    max_attempts: 3
+    backoff_factor: 2.0  # Exponential backoff multiplier
+    retry_on_status: [429, 500, 502, 503, 504]
+    
+  # Browser Settings
+  browser:
+    headless: true
+    viewport_width: 1920
+    viewport_height: 1080
+    user_agent_rotation: true
+    stealth_mode: true
+    
+    # Anti-fingerprinting
+    fingerprint:
+      canvas_noise: true
+      webgl_spoofing: true
+      plugin_randomization: true
+      timezone_spoofing: false
+      
+  # Pagination
+  pagination:
+    enabled: true
+    max_pages: 50  # Maximum pages to traverse
+    auto_detect: true
+    page_delay: 3.0  # Delay between paginated pages
+    
+  # Cookie Consent
+  cookie_consent:
+    enabled: true
+    auto_accept: true
+    timeout: 5
+    
+  # Shadow DOM & iframes
+  advanced_dom:
+    pierce_shadow_dom: true
+    extract_from_iframes: true
+    max_iframe_depth: 3
+    
+  # Algorithm settings (for price/product detection)
+  algorithm:
+    max_elements_to_scan: 300  # Maximum DOM elements to analyze
+    max_distance_for_price: 900  # Maximum pixel distance for price proximity
+    vertical_alignment_threshold: 150  # Vertical alignment tolerance
+    min_price_value: 1000  # Minimum value to consider as price
+
+# ═══════════════════════════════════════════════════════════════════
+# USER AGENTS & HEADERS
+# ═══════════════════════════════════════════════════════════════════
+headers:
+  # User-Agent pool (rotated randomly)
+  user_agents:
+    - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    - "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0"
+    - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15"
+    
+  # Additional headers
+  default_headers:
+    Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+    Accept-Language: "en-US,en;q=0.9"
+    Accept-Encoding: "gzip, deflate, br"
+    DNT: "1"
+    Connection: "keep-alive"
+    Upgrade-Insecure-Requests: "1"
+
+# ═══════════════════════════════════════════════════════════════════
+# PROXY SETTINGS
+# ═══════════════════════════════════════════════════════════════════
+proxies:
+  enabled: false  # Disabled by default (local-first approach)
+  
+  # Local proxy pool
+  pool:
+    rotation: true
+    rotation_strategy: "round_robin"  # Options: round_robin, random, least_used
+    health_check_interval: 300  # Check proxy health every 5 minutes
+    
+  # Proxy testing
+  test_sample_size: 250  # Number of proxies to test initially
+  top_percentage: 0.3  # Use top 30% of fastest proxies
+    
+  # Paid proxy services (LAST RESORT - Nuclear Option)
+  paid_services:
+    brightdata:
+      enabled: false
+      api_key: "${BRIGHTDATA_API_KEY}"
+      zone: "residential"
+      country: "us"
+      
+  # Proxy sources
+  sources:
+    - type: "file"
+      path: "/app/data/proxies.txt"
+      format: "http://ip:port"
+
+# ═══════════════════════════════════════════════════════════════════
+# CAPTCHA HANDLING
+# ═══════════════════════════════════════════════════════════════════
+captcha:
+  detection:
+    enabled: true
+    methods:
+      - "css_selectors"
+      - "network_analysis"
+      - "text_keywords"
+      - "ai_vision"  # NEW: Use LLM to detect CAPTCHAs
+      
+  solving:
+    # Local solving (priority)
+    local:
+      enabled: true
+      use_llm: true  # Try solving with local LLM
+      use_ocr: true  # Try OCR-based solving
+      
+    # Paid solving (LAST RESORT)
+    paid:
+      enabled: false
+      service: "2captcha"
+      api_key: "${CAPTCHA_API_KEY}"
+      timeout: 120
+
+# ═══════════════════════════════════════════════════════════════════
+# DATA VALIDATION & INTEGRITY
+# ═══════════════════════════════════════════════════════════════════
+validation:
+  enabled: true
+  
+  # Pydantic strict validation
+  strict_mode: true
+  
+  # Statistical integrity checks
+  integrity_checks:
+    enabled: true
+    price_range_check: true
+    outlier_detection: true
+    quarantine_invalid: true
+    
+  # Discount validation
+  discounts:
+    max_percentage: 90  # Flag discounts > 90% as suspicious
+    min_savings: 0.01  # Minimum savings to consider valid
+
+# ═══════════════════════════════════════════════════════════════════
+# LOGGING
+# ═══════════════════════════════════════════════════════════════════
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  
+  # Log rotation
+  rotation:
+    enabled: true
+    max_bytes: 104857600  # 100MB per log file
+    backup_count: 10  # Keep 10 backup files
+    
+  # Log format
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  date_format: "%Y-%m-%d %H:%M:%S"
+  
+  # Component-specific log levels
+  components:
+    playwright: "WARNING"  # Reduce Playwright verbosity
+    asyncio: "WARNING"
+    database: "INFO"
+    ai: "DEBUG"
+
+# ═══════════════════════════════════════════════════════════════════
+# MONITORING & METRICS
+# ═══════════════════════════════════════════════════════════════════
+monitoring:
+  # Prometheus metrics
+  prometheus:
+    enabled: true
+    port: 9090
+    endpoint: "/metrics"
+    
+  # Health checks
+  health_check:
+    enabled: true
+    port: 8080
+    endpoint: "/health"
+    interval: 30  # Check every 30 seconds
+    
+  # Memory profiling
+  memory:
+    enabled: true
+    check_interval: 60  # Check every minute
+    max_memory_mb: 8192  # Alert if > 8GB RAM usage
+    alert_threshold: 0.8  # Alert at 80% of max
+    
+  # Notifications
+  notifications:
+    telegram:
+      enabled: false
+      bot_token: "${TELEGRAM_BOT_TOKEN}"
+      chat_id: "${TELEGRAM_CHAT_ID}"
+      
+    email:
+      enabled: false
+      smtp_host: "smtp.gmail.com"
+      smtp_port: 587
+      username: "${EMAIL_USERNAME}"
+      password: "${EMAIL_PASSWORD}"
+      recipients:
+        - "${ADMIN_EMAIL}"
+
+# ═══════════════════════════════════════════════════════════════════
+# FEATURE FLAGS
+# ═══════════════════════════════════════════════════════════════════
+features:
+  # Core features
+  jsonld_extraction: true
+  pagination: true
+  product_variants: true
+  image_extraction: true
+  
+  # Advanced features
+  ai_extraction: true  # Enable LLM-based extraction
+  ocr_extraction: true  # Enable OCR-based extraction
+  anti_fingerprinting: true
+  session_management: true
+  
+  # Experimental features
+  shadow_dom: true
+  iframe_extraction: true
+  sitemap_parsing: true
+  adaptive_throttling: true
+  
+  # Data persistence
+  store_raw_html: true  # Store raw HTML in MongoDB
+  store_screenshots: true  # Store screenshots
+  store_error_logs: true  # Comprehensive error logging
+
+# ═══════════════════════════════════════════════════════════════════
+# HOT-RELOAD SETTINGS
+# ═══════════════════════════════════════════════════════════════════
+hot_reload:
+  enabled: true
+  watch_interval: 2  # Check for changes every 2 seconds
+  debounce_delay: 1  # Wait 1 second before applying changes
+  notify_on_reload: true

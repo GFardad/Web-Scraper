@@ -1,0 +1,5 @@
+# PaddleOCR dependencies
+paddleocr>=2.7.0
+paddlepaddle-gpu>=2.5.2
+flask>=3.0.0
+Pillow>=10.0.0

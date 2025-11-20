@@ -1,0 +1,310 @@
+[
+    {
+        "label": "logging",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "logging",
+        "description": "logging",
+        "detail": "logging",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "create_async_engine",
+        "importPath": "sqlalchemy.ext.asyncio",
+        "description": "sqlalchemy.ext.asyncio",
+        "isExtraImport": true,
+        "detail": "sqlalchemy.ext.asyncio",
+        "documentation": {}
+    },
+    {
+        "label": "AsyncSession",
+        "importPath": "sqlalchemy.ext.asyncio",
+        "description": "sqlalchemy.ext.asyncio",
+        "isExtraImport": true,
+        "detail": "sqlalchemy.ext.asyncio",
+        "documentation": {}
+    },
+    {
+        "label": "sessionmaker",
+        "importPath": "sqlalchemy.orm",
+        "description": "sqlalchemy.orm",
+        "isExtraImport": true,
+        "detail": "sqlalchemy.orm",
+        "documentation": {}
+    },
+    {
+        "label": "declarative_base",
+        "importPath": "sqlalchemy.orm",
+        "description": "sqlalchemy.orm",
+        "isExtraImport": true,
+        "detail": "sqlalchemy.orm",
+        "documentation": {}
+    },
+    {
+        "label": "Column",
+        "importPath": "sqlalchemy",
+        "description": "sqlalchemy",
+        "isExtraImport": true,
+        "detail": "sqlalchemy",
+        "documentation": {}
+    },
+    {
+        "label": "Integer",
+        "importPath": "sqlalchemy",
+        "description": "sqlalchemy",
+        "isExtraImport": true,
+        "detail": "sqlalchemy",
+        "documentation": {}
+    },
+    {
+        "label": "String",
+        "importPath": "sqlalchemy",
+        "description": "sqlalchemy",
+        "isExtraImport": true,
+        "detail": "sqlalchemy",
+        "documentation": {}
+    },
+    {
+        "label": "Float",
+        "importPath": "sqlalchemy",
+        "description": "sqlalchemy",
+        "isExtraImport": true,
+        "detail": "sqlalchemy",
+        "documentation": {}
+    },
+    {
+        "label": "JSON",
+        "importPath": "sqlalchemy",
+        "description": "sqlalchemy",
+        "isExtraImport": true,
+        "detail": "sqlalchemy",
+        "documentation": {}
+    },
+    {
+        "label": "DateTime",
+        "importPath": "sqlalchemy",
+        "description": "sqlalchemy",
+        "isExtraImport": true,
+        "detail": "sqlalchemy",
+        "documentation": {}
+    },
+    {
+        "label": "ForeignKey",
+        "importPath": "sqlalchemy",
+        "description": "sqlalchemy",
+        "isExtraImport": true,
+        "detail": "sqlalchemy",
+        "documentation": {}
+    },
+    {
+        "label": "select",
+        "importPath": "sqlalchemy",
+        "description": "sqlalchemy",
+        "isExtraImport": true,
+        "detail": "sqlalchemy",
+        "documentation": {}
+    },
+    {
+        "label": "update",
+        "importPath": "sqlalchemy",
+        "description": "sqlalchemy",
+        "isExtraImport": true,
+        "detail": "sqlalchemy",
+        "documentation": {}
+    },
+    {
+        "label": "asyncio",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "asyncio",
+        "description": "asyncio",
+        "detail": "asyncio",
+        "documentation": {}
+    },
+    {
+        "label": "math",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "math",
+        "description": "math",
+        "detail": "math",
+        "documentation": {}
+    },
+    {
+        "label": "re",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "re",
+        "description": "re",
+        "detail": "re",
+        "documentation": {}
+    },
+    {
+        "label": "sys",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "sys",
+        "description": "sys",
+        "detail": "sys",
+        "documentation": {}
+    },
+    {
+        "label": "os",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "os",
+        "description": "os",
+        "detail": "os",
+        "documentation": {}
+    },
+    {
+        "label": "async_playwright",
+        "importPath": "playwright.async_api",
+        "description": "playwright.async_api",
+        "isExtraImport": true,
+        "detail": "playwright.async_api",
+        "documentation": {}
+    },
+    {
+        "label": "DatabaseCore",
+        "importPath": "config_db",
+        "description": "config_db",
+        "isExtraImport": true,
+        "detail": "config_db",
+        "documentation": {}
+    },
+    {
+        "label": "aiohttp",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "aiohttp",
+        "description": "aiohttp",
+        "detail": "aiohttp",
+        "documentation": {}
+    },
+    {
+        "label": "random",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "random",
+        "description": "random",
+        "detail": "random",
+        "documentation": {}
+    },
+    {
+        "label": "ScrapeTask",
+        "kind": 6,
+        "importPath": "config_db",
+        "description": "config_db",
+        "peekOfCode": "class ScrapeTask(Base):\n    \"\"\"جدول صف لینک‌هایی که باید پردازش شوند\"\"\"\n    __tablename__ = 'scrape_tasks'\n    id = Column(Integer, primary_key=True)\n    url = Column(String, unique=True, index=True)\n    status = Column(String, default='pending') # pending, processing, done, failed\n    priority = Column(Integer, default=1)\n    attempts = Column(Integer, default=0)\n    last_error = Column(String, nullable=True)\n    created_at = Column(DateTime, default=datetime.utcnow)",
+        "detail": "config_db",
+        "documentation": {}
+    },
+    {
+        "label": "ScrapeResult",
+        "kind": 6,
+        "importPath": "config_db",
+        "description": "config_db",
+        "peekOfCode": "class ScrapeResult(Base):\n    \"\"\"جدول نتایج نهایی\"\"\"\n    __tablename__ = 'scrape_results'\n    id = Column(Integer, primary_key=True)\n    task_id = Column(Integer, ForeignKey('scrape_tasks.id'))\n    title = Column(String)\n    price = Column(Integer)\n    currency = Column(String)\n    confidence_score = Column(Float)\n    meta_data = Column(JSON) ",
+        "detail": "config_db",
+        "documentation": {}
+    },
+    {
+        "label": "DatabaseCore",
+        "kind": 6,
+        "importPath": "config_db",
+        "description": "config_db",
+        "peekOfCode": "class DatabaseCore:\n    def __init__(self):\n        self.engine = create_async_engine(DATABASE_URL, echo=False)\n        self.async_session = sessionmaker(self.engine, class_=AsyncSession, expire_on_commit=False)\n    async def init_models(self):\n        async with self.engine.begin() as conn:\n            await conn.run_sync(Base.metadata.create_all)\n    async def add_task(self, url: str, priority: int = 1):\n        async with self.async_session() as session:\n            try:",
+        "detail": "config_db",
+        "documentation": {}
+    },
+    {
+        "label": "DATABASE_URL",
+        "kind": 5,
+        "importPath": "config_db",
+        "description": "config_db",
+        "peekOfCode": "DATABASE_URL = \"sqlite+aiosqlite:///commercial_scraper.db\"\nlogging.basicConfig(\n    level=logging.INFO,\n    format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',\n    handlers=[logging.StreamHandler()]\n)\nlogger = logging.getLogger(\"DB_System\")\nBase = declarative_base()\nclass ScrapeTask(Base):\n    \"\"\"جدول صف لینک‌هایی که باید پردازش شوند\"\"\"",
+        "detail": "config_db",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "config_db",
+        "description": "config_db",
+        "peekOfCode": "logger = logging.getLogger(\"DB_System\")\nBase = declarative_base()\nclass ScrapeTask(Base):\n    \"\"\"جدول صف لینک‌هایی که باید پردازش شوند\"\"\"\n    __tablename__ = 'scrape_tasks'\n    id = Column(Integer, primary_key=True)\n    url = Column(String, unique=True, index=True)\n    status = Column(String, default='pending') # pending, processing, done, failed\n    priority = Column(Integer, default=1)\n    attempts = Column(Integer, default=0)",
+        "detail": "config_db",
+        "documentation": {}
+    },
+    {
+        "label": "Base",
+        "kind": 5,
+        "importPath": "config_db",
+        "description": "config_db",
+        "peekOfCode": "Base = declarative_base()\nclass ScrapeTask(Base):\n    \"\"\"جدول صف لینک‌هایی که باید پردازش شوند\"\"\"\n    __tablename__ = 'scrape_tasks'\n    id = Column(Integer, primary_key=True)\n    url = Column(String, unique=True, index=True)\n    status = Column(String, default='pending') # pending, processing, done, failed\n    priority = Column(Integer, default=1)\n    attempts = Column(Integer, default=0)\n    last_error = Column(String, nullable=True)",
+        "detail": "config_db",
+        "documentation": {}
+    },
+    {
+        "label": "Utils",
+        "kind": 6,
+        "importPath": "main_engine",
+        "description": "main_engine",
+        "peekOfCode": "class Utils:\n    @staticmethod\n    def normalize_digits(text: str) -> str:\n        if not text:\n            return \"\"\n        mapping = {\n            \"۰\": \"0\",\n            \"۱\": \"1\",\n            \"۲\": \"2\",\n            \"۳\": \"3\",",
+        "detail": "main_engine",
+        "documentation": {}
+    },
+    {
+        "label": "GeometryCalculator",
+        "kind": 6,
+        "importPath": "main_engine",
+        "description": "main_engine",
+        "peekOfCode": "class GeometryCalculator:\n    @staticmethod\n    def get_center(box):\n        return (box[\"x\"] + box[\"width\"] / 2, box[\"y\"] + box[\"height\"] / 2)\n    @staticmethod\n    def dist(box1, box2):\n        c1 = GeometryCalculator.get_center(box1)\n        c2 = GeometryCalculator.get_center(box2)\n        return math.sqrt((c1[0] - c2[0]) ** 2 + (c1[1] - c2[1]) ** 2)\n    @staticmethod",
+        "detail": "main_engine",
+        "documentation": {}
+    },
+    {
+        "label": "BrowserWorker",
+        "kind": 6,
+        "importPath": "main_engine",
+        "description": "main_engine",
+        "peekOfCode": "class BrowserWorker:\n    async def run(self, url):\n        async with async_playwright() as p:\n            # تنظیمات مرورگر برای شباهت بیشتر به انسان\n            browser = await p.chromium.launch(\n                headless=True,  # اگر محیط گرافیکی دارید False کنید تا ببینید\n                args=[\n                    \"--disable-blink-features=AutomationControlled\",\n                    \"--no-sandbox\",\n                    \"--disable-dev-shm-usage\",",
+        "detail": "main_engine",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "main_engine",
+        "description": "main_engine",
+        "peekOfCode": "logger = logging.getLogger(\"DEBUG_ENGINE\")\nclass Utils:\n    @staticmethod\n    def normalize_digits(text: str) -> str:\n        if not text:\n            return \"\"\n        mapping = {\n            \"۰\": \"0\",\n            \"۱\": \"1\",\n            \"۲\": \"2\",",
+        "detail": "main_engine",
+        "documentation": {}
+    },
+    {
+        "label": "ProxyManager",
+        "kind": 6,
+        "importPath": "proxy_guard",
+        "description": "proxy_guard",
+        "peekOfCode": "class ProxyManager:\n    def __init__(self):\n        self.valid_proxies = []\n        # منابع لیست پروکسی رایگان (GitHub Raw Lists)\n        self.proxy_sources = [\n            \"https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/http.txt\",\n            \"https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/http.txt\",\n        ]\n        self.is_updating = False\n    async def fetch_raw_proxies(self):",
+        "detail": "proxy_guard",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "proxy_guard",
+        "description": "proxy_guard",
+        "peekOfCode": "logger = logging.getLogger(\"ProxyGuard\")\nclass ProxyManager:\n    def __init__(self):\n        self.valid_proxies = []\n        # منابع لیست پروکسی رایگان (GitHub Raw Lists)\n        self.proxy_sources = [\n            \"https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/http.txt\",\n            \"https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/http.txt\",\n        ]\n        self.is_updating = False",
+        "detail": "proxy_guard",
+        "documentation": {}
+    }
+]

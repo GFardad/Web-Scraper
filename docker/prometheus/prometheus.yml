@@ -1,0 +1,46 @@
+# Prometheus Configuration
+# Scrapes metrics from scraper application and databases
+
+global:
+  scrape_interval: 15s  # Scrape every 15 seconds
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'scraper-production'
+    environment: 'docker'
+
+# Scrape configurations
+scrape_configs:
+  # Scraper application metrics
+  - job_name: 'scraper-app'
+    static_configs:
+      - targets: ['scraper:9090']
+    metrics_path: '/metrics'
+    
+  # PostgreSQL metrics (requires postgres_exporter)
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+    # Note: Install postgres_exporter if detailed DB metrics needed
+    
+  # MongoDB metrics (requires mongodb_exporter)
+  - job_name: 'mongodb'
+    static_configs:
+      - targets: ['mongo:27017']
+    # Note:Install mongodb_exporter if detailed DB metrics needed
+    
+  # Redis metrics (requires redis_exporter)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    # Note: Install redis_exporter if detailed metrics needed
+    
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+# Alerting rules can be added here
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: []
