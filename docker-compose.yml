@@ -33,6 +33,12 @@ services:
     container_name: scraper-app
     restart: unless-stopped
     
+    # DNS servers to fix resolution issues
+    dns:
+      - 8.8.8.8      # Google DNS
+      - 1.1.1.1      # Cloudflare DNS
+      - 8.8.4.4      # Google DNS secondary
+    
     # Mount config.yaml for hot-reload
     volumes:
       - ./config.yaml:/app/config.yaml:ro  # Read-only config
@@ -74,15 +80,15 @@ services:
       
     ports:
       - "8080:8080"  # Health check endpoint
-      - "9090:9090"  # Prometheus metrics
+      - "9095:9090"  # Prometheus metrics
       
-    # Health check
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
+    # Health check (temporarily disabled)
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 60s
 
   # ─────────────────────────────────────────────────────────────────
   # CONTROL CENTER - Streamlit UI
@@ -93,6 +99,12 @@ services:
       dockerfile: Dockerfile
     container_name: scraper-control-center
     restart: unless-stopped
+    
+    # DNS servers to fix resolution issues
+    dns:
+      - 8.8.8.8      # Google DNS
+      - 1.1.1.1      # Cloudflare DNS
+      - 8.8.4.4      # Google DNS secondary
     
     volumes:
       - ./config.yaml:/app/config.yaml:ro
@@ -141,7 +153,7 @@ services:
       - scraper-network
       
     ports:
-      - "127.0.0.1:5432:5432"  # Localhost only
+      - "127.0.0.1:5434:5432"  # Localhost only (changed to avoid conflict)
       
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U scraper"]

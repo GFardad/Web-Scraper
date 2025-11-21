@@ -119,5 +119,5 @@ EXPOSE 8080 9090
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:8080/health || exit 1
 
-# Default command - start the scraper
-CMD ["python", "main_engine.py"]
+# Default command - start health check server and scraper
+CMD ["python", "docker_entrypoint.py"]

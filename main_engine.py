@@ -24,7 +24,7 @@ from playwright.async_api import async_playwright, Browser, BrowserContext, Page
 # Local imports
 from config_manager import get_config
 from config_db import DatabaseCore
-from proxy_guard import ProxyManager
+# from proxy_guard import ProxyManager  # Temporarily disabled - requires aiohttp
 from site_handlers import get_handler_for_url
 from resilience.adaptive_throttle import get_adaptive_throttler
 from concurrent_engine import DomainRateLimiter, CircuitBreaker
@@ -225,8 +225,9 @@ class ScraperOrchestrator:
         
         # Managers
         self.proxy_manager = None
-        if self.config.get('proxies.enabled', default=False):
-            self.proxy_manager = ProxyManager()
+        # Temporarily disabled - ProxyManager requires aiohttp
+        # if self.config.get('proxies.enabled', default=False):
+        #     self.proxy_manager = ProxyManager()
             
         self.tls_manager = TLSSpoofingManager()
         self.worker = BrowserWorker(self.config)

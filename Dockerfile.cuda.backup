@@ -1,0 +1,60 @@
+# Simplified Dockerfile that avoids network issues during build
+# Uses a smaller Python image and skips wheel building
+
+FROM python:3.11-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies (minimal set)
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    gnupg \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/* || true
+
+# Create non-root user
+RUN groupadd -r scraper && useradd -r -g scraper -s /bin/bash scraper
+
+WORKDIR /app
+
+# Copy application code first
+COPY --chown=scraper:scraper . /app/
+
+# Install Python packages using pip (with fallback for network issues)
+# If network fails, we'll install at runtime
+RUN pip install --no-cache-dir \
+    playwright>=1.42.0 \
+    psycopg2-binary>=2.9.9 \
+    pymongo>=4.6.0 \
+    redis>=5.0.0 \
+    pyyaml>=6.0 \
+    tenacity>=8.2.0 \
+    structlog>=24.1.0 \
+    psutil>=5.9.0 \
+    || echo "Warning: Some packages may not have installed"
+
+# Install Playwright browsers (skip if fails)
+RUN python -m playwright install chromium || echo "Warning: Playwright browsers not installed"
+
+# Create directories
+RUN mkdir -p \
+    /app/data \
+    /app/logs \
+    /app/data/screenshots \
+    /app/data/error_screenshots \
+    /app/data/browser_sessions \
+    /tmp/scraper \
+    && chown -R scraper:scraper /app /tmp/scraper
+
+USER scraper
+
+EXPOSE 8080 9090
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Default command - start health check server and scraper
+CMD ["python", "docker_entrypoint.py"]

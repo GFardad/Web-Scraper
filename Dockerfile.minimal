@@ -1,0 +1,31 @@
+# Minimal Dockerfile - No network dependencies during build
+FROM python:3.11-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+# Create non-root user
+RUN groupadd -r scraper && useradd -r -g scraper -s /bin/bash scraper
+
+WORKDIR /app
+
+# Copy all application code
+COPY --chown=scraper:scraper . /app/
+
+# Create directories
+RUN mkdir -p \
+    /app/data \
+    /app/logs \
+    /app/data/screenshots \
+    /app/data/error_screenshots \
+    /app/data/browser_sessions \
+    /tmp/scraper \
+    && chown -R scraper:scraper /app /tmp/scraper
+
+USER scraper
+
+EXPOSE 8080 9090
+
+# No health check (disabled in docker-compose.yml anyway)
+
+CMD ["python", "docker_entrypoint.py"]

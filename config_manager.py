@@ -64,15 +64,18 @@ class ConfigurationManager:
         return cls._instance
     
     def __init__(self):
-        # Only initialize once
-        if hasattr(self, '_initialized'):
+        # Only initialize once (use object.__getattribute__ to avoid recursion)
+        try:
+            object.__getattribute__(self, '_initialized')
             return
+        except AttributeError:
+            pass
             
-        self._initialized = True
-        self.config: Dict[str, Any] = {}
-        self.config_path: Optional[Path] = None
-        self.observer: Optional[Observer] = None
-        self._reload_callbacks = []
+        object.__setattr__(self, '_initialized', True)
+        object.__setattr__(self, 'config', {})
+        object.__setattr__(self, 'config_path', None)
+        object.__setattr__(self, 'observer', None)
+        object.__setattr__(self, '_reload_callbacks', [])
         
         # Load initial config
         self.load()
@@ -255,12 +258,21 @@ class ConfigurationManager:
     
     def __getattr__(self, name):
         """Allow dot notation access: config.ai.ollama.model_name"""
-        if name in self.config:
-            value = self.config[name]
+        # Use object.__getattribute__ to avoid infinite recursion
+        if name.startswith('_'):
+            return object.__getattribute__(self, name)
+        
+        try:
+            config = object.__getattribute__(self, 'config')
+        except AttributeError:
+            raise AttributeError(f"Config has no attribute '{name}'")
+        
+        if name in config:
+            value = config[name]
             if isinstance(value, dict):
                 return DotDict(value, self)
             return value
-        raise AttributeError(f"Config has no attribute '{name}'")
+        raise AttributeError(f"Config has no attribute '{name}'")  
     
     def to_dict(self) -> Dict[str, Any]:
         """Return full config as dictionary."""
