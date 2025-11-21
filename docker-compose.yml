@@ -215,13 +215,14 @@ services:
     restart: unless-stopped
     
     # GPU passthrough (requires NVIDIA Container Toolkit)
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+    # Commented out for CPU-only systems
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
               
     environment:
       OLLAMA_NUM_PARALLEL: 1  # Single request at a time (VRAM limit)
@@ -235,7 +236,7 @@ services:
       - scraper-network
       
     ports:
-      - "127.0.0.1:11434:11434"  # API endpoint
+      - "127.0.0.1:11435:11434"  # API endpoint
       
     # Pull Phi-3 Mini model on startup
     entrypoint: ["/bin/sh", "-c"]
@@ -255,16 +256,17 @@ services:
     restart: unless-stopped
     
     # GPU passthrough
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+    # Commented out for CPU-only systems
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
               
     environment:
-      CUDA_VISIBLE_DEVICES: "0"
+      CUDA_VISIBLE_DEVICES: "-1"  # Disable GPU, use CPU
       
     volumes:
       - ./docker/paddleocr:/app:ro
@@ -295,7 +297,7 @@ services:
       - scraper-network
       
     ports:
-      - "9091:9090"  # Prometheus UI
+      - "9093:9090"  # Prometheus UI
       
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
