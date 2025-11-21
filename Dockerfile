@@ -27,7 +27,7 @@ RUN python -m pip install --upgrade pip setuptools wheel
 
 # Copy requirements and build wheels
 COPY requirements.txt .
-RUN pip wheel --no-cache-dir --no-deps --wheel-dir /build/wheels -r requirements.txt
+RUN pip wheel --no-cache-dir --wheel-dir /build/wheels -r requirements.txt
 
 # ───────────────────────────────────────────────────────────────────
 # STAGE 2: Runtime - Minimal runtime image with GPU support
