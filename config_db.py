@@ -76,20 +76,25 @@ class DatabaseCore:
     async def get_pending_task(self) -> Optional[ScrapeTask]:
         """Get the next pending task and mark it as processing."""
         async with self.async_session_maker() as session:
-            async with session.begin():
-                stmt = select(ScrapeTask).where(
-                    ScrapeTask.status.in_(['pending', 'failed']),
-                    ScrapeTask.attempts < MAX_TASK_ATTEMPTS
-                ).order_by(ScrapeTask.priority.desc()).limit(1).with_for_update()
-                
-                result = await session.execute(stmt)
-                task = result.scalar()
-                
-                if task:
-                    task.status = 'processing'
-                    task.attempts += 1
-                    await session.commit()
+            try:
+                async with session.begin():
+                    stmt = select(ScrapeTask).where(
+                        ScrapeTask.status.in_(['pending', 'failed']),
+                        ScrapeTask.attempts < MAX_TASK_ATTEMPTS
+                    ).order_by(ScrapeTask.priority.desc()).limit(1).with_for_update()
+                    
+                    result = await session.execute(stmt)
+                    task = result.scalar()
+                    
+                    if task:
+                        task.status = 'processing'
+                        task.attempts += 1
+                        # NOTE: session.begin() auto-commits on successful exit
+                        # No manual commit needed - it causes lock confusion
                     return task
+            except Exception as e:
+                logger.error(f"Failed to fetch pending task: {e}", exc_info=True)
+                await session.rollback()
                 return None
 
     async def save_success(self, task_id: int, data: Dict[str, Any]) -> None:

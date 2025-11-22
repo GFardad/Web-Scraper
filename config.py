@@ -53,22 +53,12 @@ PERSIAN_BLOCKED_KEYWORDS = ["captcha", "access denied", "مسدود", "کپچا"
 
 # Legacy constants - now dynamically loaded
 # These will auto-update when config.yaml changes (if hot-reload is enabled)
+# All are lambda functions - call them to get current value
 
-@property
-def MAX_ELEMENTS_TO_SCAN():
-    return _config.get('scraper.algorithm.max_elements_to_scan', default=300)
-
-@property
-def MAX_DISTANCE_FOR_PRICE():
-    return _config.get('scraper.algorithm.max_distance_for_price', default=900)
-
-@property
-def VERTICAL_ALIGNMENT_THRESHOLD():
-    return _config.get('scraper.algorithm.vertical_alignment_threshold', default=150)
-
-@property
-def MIN_PRICE_VALUE():
-    return _config.get('scraper.algorithm.min_price_value', default=1000)
+MAX_ELEMENTS_TO_SCAN = lambda: _config.get('scraper.algorithm.max_elements_to_scan', default=300)
+MAX_DISTANCE_FOR_PRICE = lambda: _config.get('scraper.algorithm.max_distance_for_price', default=900)
+VERTICAL_ALIGNMENT_THRESHOLD = lambda: _config.get('scraper.algorithm.vertical_alignment_threshold', default=150)
+MIN_PRICE_VALUE = lambda: _config.get('scraper.algorithm.min_price_value', default=1000)
 
 # ═══════════════════════════════════════════════════════════════════
 # PROXY SETTINGS

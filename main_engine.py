@@ -159,8 +159,10 @@ class BrowserWorker:
                     # Wait for network settle
                     try:
                         await page.wait_for_load_state("networkidle", timeout=20000)
-                    except:
-                        logger.warning("network_idle_timeout")
+                    except asyncio.TimeoutError:
+                        logger.warning("network_idle_timeout", url=url)
+                    except Exception as e:
+                        logger.warning(f"Network idle check failed: {e}")
 
                     # -----------------------------------------------------
                     # CAPTCHA Handling
@@ -198,13 +200,24 @@ class BrowserWorker:
                     try:
                         await page.screenshot(path=screenshot_path, full_page=True)
                         logger.error("error_screenshot_saved", path=screenshot_path)
-                    except:
-                        pass
+                    except Exception as screenshot_err:
+                        logger.warning(f"Could not save error screenshot: {screenshot_err}")
                     raise e
                     
             finally:
-                await context.close()
-                await browser.close()
+                # CRITICAL: Independent cleanup to prevent resource leaks
+                # If context.close() fails, browser MUST still close
+                try:
+                    await context.close()
+                    logger.debug("Browser context closed successfully")
+                except Exception as ctx_err:
+                    logger.error(f"Failed to close context: {ctx_err}", exc_info=True)
+                
+                try:
+                    await browser.close()
+                    logger.debug("Browser closed successfully")
+                except Exception as browser_err:
+                    logger.error(f"Failed to close browser: {browser_err}", exc_info=True)
 
 class ScraperOrchestrator:
     """

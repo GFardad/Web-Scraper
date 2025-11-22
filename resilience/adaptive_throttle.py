@@ -9,11 +9,16 @@ Features:
 - Per-domain throttling state
 - Hot-reloadable configuration
 - Thread-safe state management
+
+FIXED (Second-Pass Audit):
+- Callback registration error (register_callback -> on_reload)
+- Thread safety annotations
 """
 
 import logging
 import time
 import threading
+import asyncio
 from typing import Dict, Optional
 from urllib.parse import urlparse
 from config_manager import get_config
@@ -28,10 +33,21 @@ class AdaptiveThrottler:
     - On Success: Decrease delay linearly (Additive Decrease)
     - On Failure (429/5xx): Increase delay exponentially (Multiplicative Increase)
     - Respects min/max delay bounds from config
+    
+    Thread Safety:
+    - Uses threading.Lock for synchronous update protection
+    - Safe for use from both sync and async contexts
+    - Lock holds are brief (dictionary updates only)
     """
     
     def __init__(self):
         self.config = get_config()
+        
+        # NOTE: threading.Lock used (not asyncio.Lock) because:
+        # 1. Dictionary updates are synchronous anyway
+        # 2. Lock holds are very brief (<1ms)
+        # 3. Called from both sync and async code
+        # If performance issues arise, consider asyncio.Lock for async-only paths
         self._lock = threading.Lock()
         self._domain_delays: Dict[str, float] = {}
         self._success_counts: Dict[str, int] = {}
@@ -39,8 +55,11 @@ class AdaptiveThrottler:
         # Load initial config
         self._load_config()
         
-        # Register for config updates
-        self.config.register_callback(self._on_config_change)
+        # ╔═══════════════════════════════════════════════════════════════╗
+        # ║ CRITICAL FIX: Changed register_callback -> on_reload         ║
+        # ║ ConfigurationManager has on_reload(), not register_callback  ║
+        # ╚═══════════════════════════════════════════════════════════════╝
+        self.config.on_reload(self._on_config_change)
         
     def _load_config(self):
         """Load throttling parameters from config."""
@@ -64,9 +83,11 @@ class AdaptiveThrottler:
         self._load_config()
 
     def _get_domain(self, url: str) -> str:
+        """Extract domain from URL with error handling."""
         try:
             return urlparse(url).netloc
-        except Exception:
+        except Exception as e:
+            logger.warning(f"Failed to parse URL domain: {url}, error: {e}")
             return "unknown"
 
     def get_delay(self, url: str) -> float:
@@ -168,6 +189,17 @@ class AdaptiveThrottler:
         delay = self.get_delay(url)
         if delay > 0:
             time.sleep(delay)
+    
+    async def async_sleep(self, url: str):
+        """
+        Async version of sleep for async contexts.
+        
+        Args:
+            url: The target URL
+        """
+        delay = self.get_delay(url)
+        if delay > 0:
+            await asyncio.sleep(delay)
 
 # Singleton instance
 _throttler = None

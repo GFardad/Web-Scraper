@@ -3,6 +3,10 @@ Concurrent Processing Engine with Domain Rate Limiting
 
 Implements asyncio-based concurrent task processing with per-domain
 rate limiting and circuit breaker pattern for robust scraping.
+
+FIXED (Second-Pass Audit):
+- Corrupted docstring in DomainRateLimiter.__init__
+- defaultdict(asyncio.Lock) race condition - replaced with factory method
 """
 
 import asyncio
@@ -24,16 +28,20 @@ class DomainRateLimiter:
     
     def __init__(self, delay_seconds: float = 1.0):
         """
-        Initialize domain rate lim
-
-iter.
+        Initialize domain rate limiter.
         
         Args:
             delay_seconds: Minimum delay between requests to same domain
         """
         self.delay_seconds = delay_seconds
         self.last_access: Dict[str, float] = {}
-        self.locks: Dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
+        
+        # ╔═══════════════════════════════════════════════════════════════╗
+        # ║ CRITICAL FIX: Removed defaultdict(asyncio.Lock) race         ║
+        # ║ Using factory method with lock protection instead            ║
+        # ╚═══════════════════════════════════════════════════════════════╝
+        self.locks: Dict[str, asyncio.Lock] = {}
+        self._locks_creation_lock = asyncio.Lock()
     
     def _get_domain(self, url: str) -> str:
         """Extract domain from URL."""
@@ -41,6 +49,30 @@ iter.
             return urlparse(url).netloc
         except:
             return "unknown"
+    
+    async def _get_lock(self, domain: str) -> asyncio.Lock:
+        """
+        Get or create lock for domain (thread-safe).
+        
+        Prevents race condition where multiple coroutines
+        create different locks for the same domain.
+        
+        Args:
+            domain: Domain name
+            
+        Returns:
+            asyncio.Lock for the domain
+        """
+        # Fast path: lock already exists
+        if domain in self.locks:
+            return self.locks[domain]
+        
+        # Slow path: need to create lock with protection
+        async with self._locks_creation_lock:
+            # Double-check after acquiring lock (another coroutine might have created it)
+            if domain not in self.locks:
+                self.locks[domain] = asyncio.Lock()
+            return self.locks[domain]
     
     async def acquire(self, url: str):
         """
@@ -51,7 +83,10 @@ iter.
         """
         domain = self._get_domain(url)
         
-        async with self.locks[domain]:
+        # Get domain-specific lock safely
+        domain_lock = await self._get_lock(domain)
+        
+        async with domain_lock:
             if domain in self.last_access:
                 elapsed = time.time() - self.last_access[domain]
                 if elapsed < self.delay_seconds:

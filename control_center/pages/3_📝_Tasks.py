@@ -78,11 +78,34 @@ with col_submit2:
     )
 
 def validate_url(url: str) -> bool:
-    """Validate URL format."""
+    """
+    Validate URL format and safety.
+    
+    Only allows http/https schemes to prevent:
+    - SSRF attacks (javascript:, file:, data: schemes)
+    - Local file disclosure
+    - XSS via stored URLs
+    """
+    if not url or not isinstance(url, str):
+        return False
+    
     try:
         result = urlparse(url)
-        return all([result.scheme, result.netloc])
-    except:
+        
+        # SECURITY: Only allow safe schemes
+        if result.scheme not in ('http', 'https'):
+            return False
+        
+        # Must have valid netloc (domain)
+        if not result.netloc:
+            return False
+        
+        # Reject suspicious patterns
+        if any(char in url for char in ['<', '>', '"', "'"]):
+            return False
+            
+        return True
+    except Exception:
         return False
 
 if st.button("➕ Add Single Task", type="primary", use_container_width=True):

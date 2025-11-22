@@ -120,8 +120,9 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       
     depends_on:
-      scraper:
-        condition: service_healthy
+      - postgres
+      - mongo
+      - redis
         
     networks:
       - scraper-network

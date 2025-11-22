@@ -1,12 +1,22 @@
 # ═══════════════════════════════════════════════════════════════════
-# SCRAPER DOCKERFILE - Multi-Stage Build
+# SCRAPER DOCKERFILE - Multi-Stage Build (VPN-HARDENED)
 # GPU-Enabled | Python 3.11 | Playwright | Zero Host Dependencies
+# DNS-ENFORCED for VPN/Corporate Network Resilience
 # ═══════════════════════════════════════════════════════════════════
 
 # ───────────────────────────────────────────────────────────────────
 # STAGE 1: Builder - Build Python wheels and dependencies
 # ───────────────────────────────────────────────────────────────────
 FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04 as builder
+
+# ╔═══════════════════════════════════════════════════════════════════╗
+# ║ CRITICAL: VPN/PROXY DNS FIX - Force Google DNS During Build      ║
+# ║ Without this, builds FAIL behind corporate VPN/proxy             ║
+# ╚═══════════════════════════════════════════════════════════════════╝
+RUN echo "nameserver 8.8.8.8" > /etc/resolv.conf && \
+    echo "nameserver 1.1.1.1" >> /etc/resolv.conf && \
+    echo "nameserver 8.8.4.4" >> /etc/resolv.conf && \
+    cat /etc/resolv.conf
 
 # Install Python and build tools
 RUN apt-get update && apt-get install -y \
@@ -27,7 +37,17 @@ RUN python -m pip install --upgrade pip setuptools wheel
 
 # Copy requirements and build wheels
 COPY requirements.txt .
-RUN pip wheel --no-cache-dir --wheel-dir /build/wheels -r requirements.txt
+
+# ╔═══════════════════════════════════════════════════════════════════╗
+# ║ HARDENED: Add PyPI mirrors + retry logic for network resilience  ║
+# ╚═══════════════════════════════════════════════════════════════════╝
+RUN pip wheel --no-cache-dir \
+    --retries 5 \
+    --timeout 30 \
+    --index-url https://pypi.org/simple \
+    --extra-index-url https://mirrors.aliyun.com/pypi/simple/ \
+    --wheel-dir /build/wheels \
+    -r requirements.txt
 
 # ───────────────────────────────────────────────────────────────────
 # STAGE 2: Runtime - Minimal runtime image with GPU support
@@ -39,6 +59,13 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     DEBIAN_FRONTEND=noninteractive
+
+# ╔═══════════════════════════════════════════════════════════════════╗
+# ║ CRITICAL: VPN/PROXY DNS FIX - Enforce runtime DNS too            ║
+# ╚═══════════════════════════════════════════════════════════════════╝
+RUN echo "nameserver 8.8.8.8" > /etc/resolv.conf && \
+    echo "nameserver 1.1.1.1" >> /etc/resolv.conf && \
+    echo "nameserver 8.8.4.4" >> /etc/resolv.conf
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y \
@@ -106,7 +133,7 @@ RUN mkdir -p \
     /app/data/screenshots \
     /app/data/error_screenshots \
     /app/data/browser_sessions \
-    /tmp/scraper && \
+   /tmp/scraper && \
     chown -R scraper:scraper /app /tmp/scraper
 
 # Switch to non-root user
@@ -115,7 +142,7 @@ USER scraper
 # Expose ports
 EXPOSE 8080 9090
 
-# Health check
+# Health check with timeout protection
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:8080/health || exit 1
 
